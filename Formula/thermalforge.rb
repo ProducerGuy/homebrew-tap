@@ -14,19 +14,11 @@ class Thermalforge < Formula
     # Install CLI binary
     bin.install ".build/release/thermalforge"
 
-    # Generate app icon if not present
-    unless File.exist?("ThermalForge.icns")
-      system "swift", "Scripts/generate-icon.swift"
-      system "iconutil", "-c", "icns", "ThermalForge.iconset", "-o", "ThermalForge.icns"
-    end
-
     # Create .app bundle in prefix
     app_dir = prefix/"ThermalForge.app/Contents"
     (app_dir/"MacOS").mkpath
-    (app_dir/"Resources").mkpath
 
     cp ".build/release/ThermalForgeApp", app_dir/"MacOS/ThermalForgeApp"
-    cp "ThermalForge.icns", app_dir/"Resources/AppIcon.icns"
 
     (app_dir/"Info.plist").write <<~PLIST
       <?xml version="1.0" encoding="UTF-8"?>
@@ -46,8 +38,6 @@ class Thermalforge < Formula
           <string>#{version}</string>
           <key>CFBundleExecutable</key>
           <string>ThermalForgeApp</string>
-          <key>CFBundleIconFile</key>
-          <string>AppIcon</string>
           <key>CFBundlePackageType</key>
           <string>APPL</string>
           <key>LSMinimumSystemVersion</key>
