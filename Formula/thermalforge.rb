@@ -1,7 +1,7 @@
 class Thermalforge < Formula
   desc "Fan control for Apple Silicon MacBooks"
   homepage "https://github.com/ProducerGuy/ThermalForge"
-  url "https://github.com/ProducerGuy/ThermalForge.git", tag: "v0.1.4"
+  url "https://github.com/ProducerGuy/ThermalForge.git", tag: "v0.1.3"
   license "MIT"
 
   depends_on xcode: ["15.0", :build]
@@ -11,23 +11,54 @@ class Thermalforge < Formula
     # Build both CLI and menu bar app
     system "swift", "build", "-c", "release", "--disable-sandbox"
 
-    # Generate app icon if not present (build-app needs the .icns)
+    # Install CLI binary
+    bin.install ".build/release/thermalforge"
+
+    # Generate app icon if not present
     unless File.exist?("ThermalForge.icns")
       system "swift", "Scripts/generate-icon.swift"
       system "iconutil", "-c", "icns", "ThermalForge.iconset", "-o", "ThermalForge.icns"
     end
 
-    # Assemble the .app bundle in the keg via the single shared assembler baked
-    # into the CLI, so it's identical to the from-source path (version, macOS
-    # floor, every field). Must run BEFORE bin.install, which moves
-    # .build/release/thermalforge out of .build.
-    system ".build/release/thermalforge", "build-app",
-           "--binary", ".build/release/ThermalForgeApp",
-           "--icon", "ThermalForge.icns",
-           "--dest", "#{prefix}/ThermalForge.app"
+    # Create .app bundle in prefix
+    app_dir = prefix/"ThermalForge.app/Contents"
+    (app_dir/"MacOS").mkpath
+    (app_dir/"Resources").mkpath
 
-    # Install CLI binary (moves it out of .build/release)
-    bin.install ".build/release/thermalforge"
+    cp ".build/release/ThermalForgeApp", app_dir/"MacOS/ThermalForgeApp"
+    cp "ThermalForge.icns", app_dir/"Resources/AppIcon.icns"
+
+    (app_dir/"Info.plist").write <<~PLIST
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+        "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+          <key>CFBundleName</key>
+          <string>ThermalForge</string>
+          <key>CFBundleDisplayName</key>
+          <string>ThermalForge</string>
+          <key>CFBundleIdentifier</key>
+          <string>com.thermalforge.app</string>
+          <key>CFBundleVersion</key>
+          <string>#{version}</string>
+          <key>CFBundleShortVersionString</key>
+          <string>#{version}</string>
+          <key>CFBundleExecutable</key>
+          <string>ThermalForgeApp</string>
+          <key>CFBundleIconFile</key>
+          <string>AppIcon</string>
+          <key>CFBundlePackageType</key>
+          <string>APPL</string>
+          <key>LSMinimumSystemVersion</key>
+          <string>14.0</string>
+          <key>LSUIElement</key>
+          <true/>
+          <key>NSHighResolutionCapable</key>
+          <true/>
+      </dict>
+      </plist>
+    PLIST
   end
 
   def caveats
