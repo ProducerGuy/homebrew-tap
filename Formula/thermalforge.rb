@@ -61,40 +61,19 @@ class Thermalforge < Formula
     PLIST
   end
 
-  def post_install
-    # Copy .app to /Applications so it shows in Spotlight/Finder
-    app_source = prefix/"ThermalForge.app"
-    app_dest = Pathname.new("/Applications/ThermalForge.app")
-
-    if app_source.exist?
-      app_dest.rmtree if app_dest.exist?
-      cp_r app_source, app_dest
-      system "xattr", "-cr", app_dest
-      system "mdimport", app_dest
-    end
-
-    ohai ""
-    ohai "ThermalForge installed!"
-    ohai ""
-    ohai "One last step — set up the background daemon (one-time):"
-    ohai ""
-    ohai "  sudo thermalforge install"
-    ohai ""
-    ohai "Then you're all set:"
-    ohai "  • Open from Spotlight: search 'ThermalForge'"
-    ohai "  • Open from Finder: Applications > ThermalForge"
-    ohai "  • Or from terminal: open /Applications/ThermalForge.app"
-    ohai ""
-    ohai "Turn on 'Launch at Login' in the menu bar dropdown and it starts automatically."
-  end
-
   def caveats
     <<~EOS
       To finish setup, run once:
 
         sudo thermalforge install
 
-      This installs the background daemon so the app can control fans without sudo.
+      That command does two things (both need root, which Homebrew's
+      sandboxed post-install can't do):
+        1. Installs the background daemon so the app controls fans without sudo.
+        2. Copies ThermalForge.app into /Applications.
+
+      When it finishes, open ThermalForge from Spotlight or /Applications,
+      then turn on "Launch at Login" in the menu bar dropdown.
     EOS
   end
 
