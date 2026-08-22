@@ -1,7 +1,7 @@
 class Thermalforge < Formula
   desc "Fan control for Apple Silicon MacBooks"
   homepage "https://github.com/ProducerGuy/ThermalForge"
-  url "https://github.com/ProducerGuy/ThermalForge.git", tag: "v0.2.0"
+  url "https://github.com/ProducerGuy/ThermalForge.git", tag: "v0.2.1"
   license "MIT"
 
   depends_on xcode: ["15.0", :build]
