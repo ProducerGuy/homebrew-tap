@@ -5,7 +5,9 @@ Homebrew formulae for [ThermalForge](https://github.com/ProducerGuy/ThermalForge
 ## Install
 
 ```bash
-brew install ProducerGuy/tap/thermalforge
+brew tap ProducerGuy/tap
+brew trust --formula ProducerGuy/tap/thermalforge
+brew install thermalforge
 sudo thermalforge install
 ```
 
