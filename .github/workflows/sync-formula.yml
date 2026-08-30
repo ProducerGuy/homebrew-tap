@@ -1,0 +1,71 @@
+name: Sync formula to latest ThermalForge release
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-formula
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get latest ThermalForge release tag
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(gh api repos/ProducerGuy/ThermalForge/releases/latest --jq .tag_name)
+          if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Unexpected tag format: $tag" >&2
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Compare against formula
+        id: compare
+        run: |
+          current=$(grep -oE 'tag: "v[0-9]+\.[0-9]+\.[0-9]+"' Formula/thermalforge.rb | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+')
+          latest="${{ steps.release.outputs.tag }}"
+          echo "Formula: $current / Latest release: $latest"
+          if [ "$current" = "$latest" ]; then
+            echo "update=false" >> "$GITHUB_OUTPUT"
+          elif [ "$(printf '%s\n%s\n' "${current#v}" "${latest#v}" | sort -V | tail -n1)" = "${latest#v}" ]; then
+            echo "update=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Release is older than formula; refusing to downgrade." >&2
+            echo "update=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bump formula
+        if: steps.compare.outputs.update == 'true'
+        run: |
+          latest="${{ steps.release.outputs.tag }}"
+          sed -i -E "s|tag: \"v[0-9]+\.[0-9]+\.[0-9]+\"|tag: \"$latest\"|" Formula/thermalforge.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "thermalforge ${latest#v}"
+          git push
+
+      - name: Keepalive
+        if: steps.compare.outputs.update != 'true'
+        run: |
+          last=$(git log -1 --format=%ct)
+          days=$(( ($(date +%s) - last) / 86400 ))
+          if [ "$days" -ge 45 ]; then
+            mkdir -p .github
+            date -u +%Y-%m-%dT%H:%M:%SZ > .github/keepalive
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .github/keepalive
+            git commit -m "chore: keepalive"
+            git push
+          fi
