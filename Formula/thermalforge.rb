@@ -1,5 +1,5 @@
 class Thermalforge < Formula
-  desc "Fan control for Apple Silicon MacBooks"
+  desc "Fan control for Apple Silicon Macs (M1, M2, M3, M4, M5, M6)"
   homepage "https://github.com/ProducerGuy/ThermalForge"
   url "https://github.com/ProducerGuy/ThermalForge.git", tag: "v0.2.3"
   license "MIT"
