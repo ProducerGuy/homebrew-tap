@@ -1,6 +1,8 @@
 # homebrew-tap
 
-Homebrew formulae for [ThermalForge](https://github.com/ProducerGuy/ThermalForge) — free, open-source fan control for Apple Silicon Macs.
+Homebrew formulae for [ThermalForge](https://github.com/ProducerGuy/ThermalForge), free Apple fan control, open source, for Apple Silicon Macs (M1, M2, M3, M4, M5, M6): Mac mini, MacBook, MacBook Pro, Mac Studio, iMac.
+
+ThermalForge by [Producer Guy](https://github.com/ProducerGuy)
 
 ## Install
 
